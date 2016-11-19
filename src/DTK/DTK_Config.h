@@ -1,0 +1,81 @@
+
+#ifndef __DTK_CONFIG_H__  
+#define __DTK_CONFIG_H__  
+
+#if (defined _WIN32 || defined _WIN64)
+    #ifndef CALLBACK
+    #define CALLBACK __stdcall
+    #endif
+
+    #include <winsock2.h>	
+    #include <ws2tcpip.h>
+    #include <windows.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <Mswsock.h>
+
+    #define OS_WINDOWS	1
+    #define DTK_EXPORTS 1
+    #define DTK_INFINITE INFINITE
+
+    #ifdef DTK_STATIC
+        #define DTK_DECLARE
+        #define DTK_DECLARE_CLASS
+        #define DTK_DECLARE_CXX
+    #else
+        #if defined(DTK_EXPORTS)
+            #define DTK_DECLARE extern "C" __declspec(dllexport)
+            #define DTK_DECLARE_CLASS __declspec(dllexport)
+            #define DTK_DECLARE_CXX __declspec(dllexport)
+        #else
+            #define DTK_DECLARE extern "C" __declspec(dllimport)
+            #define DTK_DECLARE_CLASS __declspec(dllimport)
+            #define DTK_DECLARE_CXX __declspec(dllimport)
+        #endif
+    #endif
+#elif (defined __LINUX__)
+
+    #include <unistd.h>	
+    #include <sys/socket.h>
+    #include <sys/ioctl.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <sys/types.h>
+    #include <netdb.h>
+    #include <errno.h>
+    #include <string.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdarg.h>
+    #include <net/if.h>
+
+    #define OS_POSIX	1
+    #define DTK_INFINITE 0xFFFFFFFF
+    #define WAIT_TIMEOUT	258
+
+    #ifdef DTK_STATIC
+        #define DTK_DECLARE
+    #else
+        #define DTK_DECLARE extern "C"
+    #endif
+
+    #define DTK_DECLARE_CLASS 
+    #define DTK_DECLARE_CXX
+
+    #ifndef CALLBACK
+        #define CALLBACK
+    #else
+        #undef CALLBACK
+        #define CALLBACK
+    #endif
+
+#endif
+
+#define	DTK_OK			(0)
+#define DTK_ERROR		(-1)
+#define DTK_NOSUPPORT	(-2)
+
+#define DTK_TIMEOUT     (0)
+#define DTK_FOREVER     (-1)
+
+#endif // __DTK_CONFIG_H__ 
