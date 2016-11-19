@@ -19,13 +19,13 @@ typedef unsigned long	DTK_ULONG;
     typedef signed __int64      DTK_INT64;
     typedef unsigned __int64    DTK_UINT64;
     typedef HANDLE			    DTK_HANDLE;
-#elif (defined __LINUX__)
+#elif (defined __linux__)
     #include <stdint.h>
-    typedef int32_t             DTK_INT32
+    typedef int32_t             DTK_INT32;
     typedef uint32_t            DTK_UINT32;
     typedef int64_t             DTK_INT64;
     typedef uint64_t            DTK_UINT64;
-    typedef void*               DTK_HANDLE
+    typedef void*               DTK_HANDLE;
 #endif
 
 #ifndef DTK_BOOL

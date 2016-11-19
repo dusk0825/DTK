@@ -1,5 +1,6 @@
 
 #include "DTK_String.h"
+#include <ctype.h>
 
 DTK_DECLARE DTK_INT32 CALLBACK DTK_Strcasecmp(const char* s1, const char* s2)
 {

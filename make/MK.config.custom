@@ -1,0 +1,11 @@
+# this is user default configue, 
+# you can set your config in MK.config.custom
+
+TOP_DIR ?= ..
+
+#CFLAGS   += -I$(TOP_DIR)/../../Public/Include
+#LDFLAGS  += -L$(TOP_DIR)/../../Public/Lib/Linux
+
+
+# end
+

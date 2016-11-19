@@ -33,7 +33,7 @@
             #define DTK_DECLARE_CXX __declspec(dllimport)
         #endif
     #endif
-#elif (defined __LINUX__)
+#elif (defined __linux__)
 
     #include <unistd.h>	
     #include <sys/socket.h>
