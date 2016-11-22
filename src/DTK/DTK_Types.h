@@ -2,7 +2,7 @@
 #ifndef __DTK_TYPES_H__  
 #define __DTK_TYPES_H__  
 
-#include "DTK_Config.h"
+//#include "DTK_Config.h"
 
 //base datatype define
 typedef signed char		DTK_INT8;
@@ -14,6 +14,8 @@ typedef signed long		DTK_LONG;
 typedef unsigned long	DTK_ULONG;
 
 #if (defined _WIN32 || defined _WIN64)
+    #include <winsock2.h>
+    #include <windows.h>
     typedef signed int		    DTK_INT32;
     typedef unsigned int	    DTK_UINT32;
     typedef signed __int64      DTK_INT64;

@@ -2,14 +2,19 @@
 #ifndef __DTK_CONFIG_H__  
 #define __DTK_CONFIG_H__  
 
+//÷ß≥÷c++±‡“Î∆˜
+#ifdef __cplusplus
+#define CXXCOMPILE 1
+#elif (defined __linux__)
+#define CXXCOMPILE 1
+#endif
+
 #if (defined _WIN32 || defined _WIN64)
     #ifndef CALLBACK
     #define CALLBACK __stdcall
     #endif
 
-    #include <winsock2.h>	
     #include <ws2tcpip.h>
-    #include <windows.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <Mswsock.h>
