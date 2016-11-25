@@ -2,8 +2,6 @@
 #ifndef __DTK_TYPES_H__  
 #define __DTK_TYPES_H__  
 
-//#include "DTK_Config.h"
-
 //base datatype define
 typedef signed char		DTK_INT8;
 typedef unsigned char	DTK_UINT8;

@@ -71,32 +71,6 @@ private:
     DTK_MUTEX_T m_mutex;
 };
 
-class DTK_DECLARE_CLASS DTK_Guard
-{
-public:
-    DTK_Guard(DTK_Mutex* pMutex)
-        :m_pMutex(pMutex)
-    {
-        pMutex->Lock();	
-    }
-
-    ~DTK_Guard()
-    {
-        Release();
-    }
-
-    void Release()
-    {
-        if (m_pMutex)
-        {
-            m_pMutex->Unlock();
-            m_pMutex = NULL;
-        }
-    }
-
-private:
-    DTK_Mutex* m_pMutex;
-};
 #endif
 
 #endif // __DTK_MUTEX_H__ 

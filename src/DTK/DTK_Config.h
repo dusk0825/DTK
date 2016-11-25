@@ -53,6 +53,7 @@
     #include <stdlib.h>
     #include <stdarg.h>
     #include <net/if.h>
+    #include <unistd.h>
 
     #define OS_POSIX	1
     #define DTK_INFINITE 0xFFFFFFFF
