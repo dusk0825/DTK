@@ -42,4 +42,19 @@ DTK_DECLARE DTK_UINT32 CALLBACK DTK_Rand();
 */
 DTK_DECLARE DTK_VOID CALLBACK DTK_ZeroMemory(void* pMem, int iLen);
 
+/** @fn DTK_DECLARE DTK_VOID CALLBACK DTK_OutputDebug(const char* format, ...)
+*   @brief 输出调试信息
+*   @param [in] format  输出格式
+*   @return 无
+*/
+DTK_DECLARE DTK_VOID CALLBACK DTK_OutputDebug(const char* format, ...);
+
+/** @fn DTK_DECLARE DTK_VOID CALLBACK DTK_OutputDebugString(const char* lpOutputString)
+*   @brief 输出调试字符串
+*   @param [in] lpOutputString  字符串
+*   @return 无
+*/
+DTK_DECLARE DTK_VOID CALLBACK DTK_OutputDebugString(const char* lpOutputString);
+
+
 #endif // __DTK_UTILS_H__ 

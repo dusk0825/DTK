@@ -84,4 +84,6 @@
 #define DTK_TIMEOUT     (0)
 #define DTK_FOREVER     (-1)
 
+#define OS_SUPPORT_IPV6 1
+
 #endif // __DTK_CONFIG_H__ 
