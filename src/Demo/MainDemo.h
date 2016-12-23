@@ -16,11 +16,14 @@
 #include "DTK_Atomic.h"
 #include "DTK_Socket.h"
 #include "DTK_Select.h"
+#include "DTK_FileSystem.h"
+#include "DTK_LogModule.h"
 
 
 void Test_Event();
 void Test_Atomic();
 void Test_Sock();
+void Test_File();
 
 #endif // __MAINDEMO_H__ 
 

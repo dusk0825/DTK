@@ -3,28 +3,6 @@
 #include "DTK_Time.h"
 #include "DTK_Utils.h"
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_ZERO( fd_set *set )
-{
-    return FD_ZERO(set);
-}
-
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_SET( DTK_INT32 iFd, fd_set *set )
-{
-    FD_SET(iFd, set);
-    return DTK_OK;
-}
-
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_CLR( DTK_INT32 iFd, fd_set *set )
-{
-    FD_CLR(iFd, set);
-    return DTK_OK;
-}
-
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_ISSET(DTK_INT32 iFd, fd_set *set)
-{
-	return FD_ISSET(iFd, set);
-}
-
 DTK_DECLARE DTK_INT32 CALLBACK DTK_Select(DTK_INT32 iMaxFd, fd_set* readFds, fd_set* writeFds, fd_set* errFds, timeval* tvTime)
 {
 #if defined (OS_WINDOWS)

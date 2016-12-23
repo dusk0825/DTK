@@ -4,7 +4,7 @@ SRCS := $(wildcard *.cpp) $(wildcard *.c) $(wildcard *.cc)
 
 LDFLAGS = -shared -fPIC -D_REENTRANT -Wl,-Bsymbolic -Wl,-rpath=./
 
-CFLAGS = -lpthread
+CFLAGS = -lpthread -liconv
 
 TOP_DIR := ../../make
 

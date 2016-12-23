@@ -54,6 +54,9 @@
     #include <stdarg.h>
     #include <net/if.h>
     #include <unistd.h>
+    #include <sys/time.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
 
     #define OS_POSIX	1
     #define DTK_INFINITE 0xFFFFFFFF

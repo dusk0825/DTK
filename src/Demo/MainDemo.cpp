@@ -131,8 +131,53 @@
 
 #include "MainDemo.h"
 
+DTK_VOIDPTR CALLBACK ThreadOneCallBack(DTK_VOIDPTR pParam)
+{
+    while(1)
+    {
+        LOG_ERROR("err = %d, str = %s", 10, "hello ThreadOneCallBack");
+        LOG_WARN("err = %d, str = %s", 10, "hello ThreadOneCallBack");
+        LOG_INFO("err = %d, str = %s", 10, "hello ThreadOneCallBack");
+        LOG_DEBUG("err = %d, str = %s", 10, "hello ThreadOneCallBack");
+        LOG_TRACE("err = %d, str = %s", 10, "hello ThreadOneCallBack");
+    }
+    return NULL;
+}
+
+DTK_VOIDPTR CALLBACK ThreadTwoCallBack(DTK_VOIDPTR pParam)
+{
+    while(1)
+    {
+        LOG_ERROR("err = %d, str = %s", 10, "hello ThreadTwoCallBack");
+        LOG_WARN("err = %d, str = %s", 10, "hello ThreadTwoCallBack");
+        LOG_INFO("err = %d, str = %s", 10, "hello ThreadTwoCallBack");
+        LOG_DEBUG("err = %d, str = %s", 10, "hello ThreadTwoCallBack");
+        LOG_TRACE("err = %d, str = %s", 10, "hello ThreadTwoCallBack");
+    }
+    return NULL;
+}
+
 int main(void)
 {
-    Test_Sock();
+    DTK_Init();
+    WriteLog(TRACE_LEVEL, "HIK", __FILE__, __FUNCTION__, __LINE__, "hhhhhhhhhhh");
+
+    DTK_HANDLE hThread = DTK_Thread_Create(ThreadOneCallBack, NULL, 0);
+    if (hThread == DTK_INVALID_THREAD)
+    {
+        std::cout << "err = " << DTK_GetLastError() << std::endl;
+        return 0;
+    }
+
+    DTK_HANDLE hThreadTwo = DTK_Thread_Create(ThreadTwoCallBack, NULL, 0);
+    if (hThread == DTK_INVALID_THREAD)
+    {
+        std::cout << "err = " << DTK_GetLastError() << std::endl;
+        return 0;
+    }
+
+    DTK_Thread_Wait(hThread);
+    DTK_Thread_Wait(hThreadTwo);
+    DTK_Fini();
     return 0;
 }

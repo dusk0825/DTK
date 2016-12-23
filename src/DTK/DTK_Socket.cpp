@@ -128,7 +128,7 @@ DTK_DECLARE DTK_SOCK_T CALLBACK DTK_Accept( DTK_SOCK_T iSockFd, DTK_ADDR_T* pDTK
         iSelectRet = DTK_SelectEx((int)iSockFd+1, &fdset_r, NULL, NULL, &tv);
         if (iSelectRet > 0 && FD_ISSET(iSockFd, &fdset_r))
 #elif defined (OS_POSIX)
-        struct pollfd fds[1] = {0};
+        struct pollfd fds[1];
         int iPollRet = -1;
         fds[0].fd = iSockFd;
         fds[0].events = POLLRDNORM;
@@ -443,7 +443,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_JoinMultiCastGroup(DTK_SOCK_T iSockFd, DTK_AD
 
 	if (pSockAddr->sa_family == AF_INET)
 	{
-		struct ip_mreq struMerq = {0};
+		struct ip_mreq struMerq;
 		struMerq.imr_multiaddr.s_addr = pMcastGroupAddr->SA.sin4.sin_addr.s_addr;
 		struMerq.imr_interface.s_addr = pLocal->SA.sin4.sin_addr.s_addr;
 		return ::setsockopt(iSockFd, IPPROTO_IP,IP_ADD_MEMBERSHIP,(char*)&struMerq,sizeof(struMerq));
@@ -541,7 +541,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_Sendn(DTK_SOCK_T iSockFd, DTK_VOIDPTR pBuf, D
 
         if (iRet>0 && FD_ISSET(iSockFd,&fdset_w))
 #elif defined (OS_POSIX)
-        struct pollfd fds[1] = {0};
+        struct pollfd fds[1];
         fds[0].fd = iSockFd;
         fds[0].events = POLLWRNORM;
         iRet = DTK_PollEx(fds,1,(DTK_INT32*)&nTimeOut);
@@ -613,7 +613,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_Recvn(DTK_SOCK_T iSockFd, DTK_VOIDPTR pBuf, D
 
         if (iRet>0 && FD_ISSET(iSockFd,&fdset_r))
 #elif defined (OS_POSIX)
-        struct pollfd fds[1] = {0};
+        struct pollfd fds[1];
         fds[0].fd = iSockFd;
         fds[0].events = POLLRDNORM;
         iRet = DTK_PollEx(fds,1,(DTK_INT32*)&nTimeOut);
@@ -673,7 +673,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_RecvWithTimeOut(DTK_SOCK_T iSockFd, DTK_VOIDP
 
     if (iRet>0 && FD_ISSET(iSockFd,&fdset_r))
 #elif defined (OS_POSIX)
-    struct pollfd fds[1] = {0};
+    struct pollfd fds[1];
     int iPollRet = -1;
     fds[0].fd = iSockFd;
     fds[0].events = POLLRDNORM;

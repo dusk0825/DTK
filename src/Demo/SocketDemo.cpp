@@ -38,17 +38,17 @@ void StartListen()
 
     while(1)
     {
-        DTK_FD_ZERO(&readSet);
-        DTK_FD_SET(iListenSock, &readSet);
+        FD_ZERO(&readSet);
+        FD_SET(iListenSock, &readSet);
         for(std::vector<int>::iterator itor = vctClient.begin(); itor != vctClient.end(); ++itor)
         {
-            DTK_FD_SET((*itor), &readSet);
+            FD_SET((*itor), &readSet);
         }
 
         int iRet = DTK_Select(iMaxSock+1, &readSet, NULL, NULL, &stTm);
         if (iRet > 0)
         {
-            if (DTK_FD_ISSET(iListenSock, &readSet))
+            if (FD_ISSET(iListenSock, &readSet))
             {
                 DTK_ADDR_T stCltAddr;
                 int iCltSocket = DTK_Accept(iListenSock, &stCltAddr);
@@ -70,14 +70,14 @@ void StartListen()
             {
                 for(std::vector<int>::iterator itor = vctClient.begin(); itor != vctClient.end();)
                 {
-                    if (DTK_FD_ISSET(*itor, &readSet))
+                    if (FD_ISSET(*itor, &readSet))
                     {
                         char buf[1024] = {0};
                         if(DTK_Recv(*itor, buf, sizeof(buf)) <= 0)
                         {
                             DTK_OutputDebug("client fd = %d close", *itor);
                             DTK_CloseSocket(*itor);
-                            DTK_FD_CLR(*itor, &readSet);
+                            FD_CLR(*itor, &readSet);
                             itor = vctClient.erase(itor);
                             continue;
                         }

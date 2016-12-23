@@ -9,37 +9,6 @@
 #include <poll.h>
 #endif
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_ZERO(fd_set *set)
-*   @brief 清零FD集合
-*   @param [in] set     FD集合
-*   @return 0 成功, -1 失败
-*/
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_ZERO(fd_set *set);
-
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_SET(DTK_INT32 iFd, fd_set *set)
-*   @brief 将fd加入集合
-*   @param [in] iFd     文件fd
-*   @param [in] set     FD集合
-*   @return 0 成功, -1 失败
-*/
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_SET(DTK_INT32 iFd, fd_set *set);
-
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_CLR(DTK_INT32 iFd, fd_set *set)
-*   @brief 将fd从集合删除
-*   @param [in] iFd     文件fd
-*   @param [in] set     FD集合
-*   @return 0 成功, -1 失败
-*/
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FD_CLR(DTK_INT32 iFd, fd_set *set);
-
-/** @fn DTK_DECLARE DTK_BOOL CALLBACK DTK_FD_ISSET(DTK_INT32 iFd, fd_set *set)
-*   @brief 判断fd是否在集合
-*   @param [in] iFd     文件fd
-*   @param [in] set     FD集合
-*   @return 0 成功, -1 失败
-*/
-DTK_DECLARE DTK_BOOL CALLBACK DTK_FD_ISSET(DTK_INT32 iFd, fd_set *set);
-
 /** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_Select(DTK_INT32 iMaxFd, fd_set* readFds, fd_set* writeFds, fd_set* errFds, timeval* tvTime)
 *   @brief 轮询多个文件描述符状态
 *   @param [in] iMaxFd      最大文件描述符+1
