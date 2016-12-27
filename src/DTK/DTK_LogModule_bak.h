@@ -1,4 +1,6 @@
 
+#if 0
+
 #ifndef __DTK_LOGMODULE_H__  
 #define __DTK_LOGMODULE_H__  
 
@@ -40,16 +42,14 @@ DTK_DECLARE DTK_INT32 CALLBACK WriteLog(LOG_LEVEL_E eLevel, const char* pModule,
 #define LOG_DEBUG(fmt, ...)         WriteLog(DEBUG_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)    
 #define LOG_TRACE(fmt, ...)         WriteLog(TRACE_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)    
 #elif defined OS_POSIX
-#define LOG_ERROR(fmt, ...)         WriteLog(ERROR_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#define LOG_WARN(fmt, ...)          WriteLog(WARN_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)    
-#define LOG_INFO(fmt, ...)          WriteLog(INFO_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)    
-#define LOG_DEBUG(fmt, ...)         WriteLog(DEBUG_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)    
-#define LOG_TRACE(fmt, ...)         WriteLog(TRACE_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)   
-// #define LOG_ERROR(fmt, ...)         WriteLog(ERROR_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)
-// #define LOG_WARN(fmt, ...)          WriteLog(WARN_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
-// #define LOG_INFO(fmt, ...)          WriteLog(INFO_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
-// #define LOG_DEBUG(fmt, ...)         WriteLog(DEBUG_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
-// #define LOG_TRACE(fmt, ...)         WriteLog(TRACE_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)  
+#define LOG_ERROR(fmt, ...)         WriteLog(ERROR_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)
+#define LOG_WARN(fmt, ...)          WriteLog(WARN_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
+#define LOG_INFO(fmt, ...)          WriteLog(INFO_LEVEL,  "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
+#define LOG_DEBUG(fmt, ...)         WriteLog(DEBUG_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)    
+#define LOG_TRACE(fmt, ...)         WriteLog(TRACE_LEVEL, "DTK", __FILE__, __FUNCTION__, __LINE__, fmt, ##args)   
 #endif
 
+
 #endif // __DTK_LOGMODULE_H__ 
+
+#endif

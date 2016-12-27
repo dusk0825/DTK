@@ -19,7 +19,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_MakeDir(const char* pDir)
     //return (CreateDirectory(wDir,NULL))?DTK_OK:DTK_ERROR;
     return (CreateDirectory((LPCSTR)pDir,NULL))?DTK_OK:DTK_ERROR;
 #elif (defined OS_POSIX)
-	return mkdir(pDir, S_IRWXO);
+	return mkdir(pDir, DTK_RWXU | DTK_RWXG | DTK_RWXO);
 #endif
 }
 
@@ -194,9 +194,9 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_TraverseDir(const char* pDir, std::vector<std
 }
 #endif
 
-DTK_DECLARE DTK_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr)
+DTK_DECLARE DTK_FILE_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr)
 {
-    DTK_HANDLE hFile = DTK_INVALID_FILE;
+    DTK_FILE_HANDLE hFile = DTK_INVALID_FILE;
 
     if ( !pFileName )
     {
@@ -291,18 +291,21 @@ DTK_DECLARE DTK_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 n
 		SetFilePointer(hFile,0,NULL,FILE_END);
 	}
 #elif (defined OS_POSIX)
-    int iFd = open(pFileName, nFlag, nFileAttr);
-    if (iFd < 0)
+    if (nFileAttr & DTK_ATTR_WRITE || nFileAttr & DTK_ATTR_READONLY)
+    {
+        nFileAttr = DTK_RWXU | DTK_RWXG | DTK_RWXO;
+    }
+    hFile = open(pFileName, nFlag, nFileAttr);
+    if (hFile < 0)
     {
         return DTK_INVALID_FILE;
     }
-    hFile = (DTK_HANDLE)iFd;
 #endif
 
 	return hFile;
 }
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_HANDLE hFile)
+DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_FILE_HANDLE hFile)
 {
 	if (hFile == DTK_INVALID_FILE)
 	{
@@ -314,7 +317,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_HANDLE hFile)
 		return DTK_OK;
 	}
 #elif defined OS_POSIX
-    if (close(*(int*)hFile) == 0)
+    if (close(hFile) == 0)
     {
         return DTK_OK;
     }
@@ -339,7 +342,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_DeleteFile(const char* pFileName)
 #endif
 }
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead)
+DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead)
 {
     if (DTK_INVALID_FILE == hFile)
     {
@@ -363,7 +366,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UI
 		return DTK_OK;
 	}
 #elif defined OS_POSIX
-    DTK_UINT32 uReadByte = read(*(int*)hFile, pBuf, nNumberOfBytesToRead);
+    DTK_UINT32 uReadByte = read(hFile, pBuf, nNumberOfBytesToRead);
     if (uReadByte >= 0)
     {
         if (pNumberOfBytesRead)
@@ -377,7 +380,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UI
 	return DTK_ERROR;
 }
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite)
+DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite)
 {
     if (DTK_INVALID_FILE == hFile)
     {
@@ -400,7 +403,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_U
 		return DTK_OK;
 	}
 #elif defined OS_POSIX
-    DTK_UINT32 uWriteByte = write(*(int*)hFile, pBuf, nNumberOfBytesToWrite);
+    DTK_UINT32 uWriteByte = write(hFile, pBuf, nNumberOfBytesToWrite);
     if (uWriteByte >= 0)
     {
         if (pNumberOfBytesWrite)
@@ -414,8 +417,13 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_U
 	return DTK_ERROR;
 }
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset)
+DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_FILE_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset)
 {
+    if (DTK_INVALID_FILE == hFile)
+    {
+        return DTK_ERROR;
+    }
+
 #ifdef OS_WINDOWS
 	LARGE_INTEGER lInt;
 	lInt.QuadPart = iOffset;
@@ -430,7 +438,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_HANDLE hFile, DTK_INT64 iOffset,
 		*iCurOffset = lInt.QuadPart;
 	}
 #elif OS_POSIX
-    DTK_INT64 iRet = lseek(*(int*)hFile, iOffset, nWhence);
+    DTK_INT64 iRet = lseek(hFile, iOffset, nWhence);
     if (iRet == -1)
     {
         return DTK_ERROR;
@@ -445,7 +453,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_HANDLE hFile, DTK_INT64 iOffset,
 }
 
 #if 0
-DTK_DECLARE DTK_BOOL CALLBACK DTK_FileIsEOF(DTK_HANDLE hFile)
+DTK_DECLARE DTK_BOOL CALLBACK DTK_FileIsEOF(DTK_FILE_HANDLE hFile)
 {
 	if (hFile != DTK_INVALID_FILE)
 	{
@@ -456,12 +464,12 @@ DTK_DECLARE DTK_BOOL CALLBACK DTK_FileIsEOF(DTK_HANDLE hFile)
 }
 #endif
 
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_HANDLE hFile)
+DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_FILE_HANDLE hFile)
 {
 #ifdef OS_WINDOWS
 	return FlushFileBuffers(hFile)?DTK_OK:DTK_ERROR;
 #elif defined OS_POSIX
-    return fsync(*(int*)hFile);
+    return fsync(hFile);
 #endif
 }
 
@@ -497,6 +505,10 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_GetCurExePath(char* pBuf, DTK_INT32 iSize)
     if (NULL == pPath)
     {
         return DTK_ERROR;
+    }
+    if (pBuf[strlen(pBuf) - 1] != '/')
+    {
+        strcat(pBuf, "/");
     }
 #endif
     return DTK_OK;

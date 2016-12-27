@@ -1,4 +1,6 @@
 
+#if 0
+
 #include "DTK_LogModule.h"
 #include "DTK_FileSystem.h"
 #include "DTK_Thread.h"
@@ -7,19 +9,34 @@
 #include "DTK_Guard.h"
 #include "DTK_String.h"
 #include "xml/Markup.h"
-#include <sys/timeb.h>
 #include <time.h>
 #include <deque>
 #include <string>
 #include <vector>
 #include <map>
 
+#ifdef OS_WINDOWS
+#include <sys/timeb.h>
+#endif
 
 #define MAX_PRINT_BYTES				(5 * 1024)			//一次打印最大字节数
-#define MAX_CACHE_SIZE              (100 * 1024)        //最大缓存数量
+#define MAX_LOGBUF_BYTES			(10 * 1024 * 1024)	//最大日志缓存字节数
 
 DTK_INT32 StartLogService(void);
 DTK_INT32 StopLogService();
+
+//日志信息
+typedef struct tagLogDetial
+{
+    char *dataptr;
+    unsigned int length;
+
+    tagLogDetial()
+    {
+        dataptr = NULL;
+        length = 0;
+    }
+}LOG_DETAIL_ST, *PLOG_DETAIL_ST;
 
 //日志配置项
 typedef struct tagLogCfg
@@ -67,21 +84,22 @@ public:
 
     LOG_LEVEL_E GetLogLevel() const;
 
-    int PushData(LOG_LEVEL_E eLevel, const char* pModule, const char* pFilePath, const char* pFuncName, int iLine, char const *pContent);
+    int PushData(char const *pContent, unsigned int iLen);
 
 private:
     static void* CALLBACK WriteLogProc(void *pParam);
-
-    int FormatLogContent(char *pBuffer, unsigned int uSize, LOG_LEVEL_E eLevel, const char* pModule, const char* pFileName, const char* pFuncName, int iLine);
 
     int InputDataToFile(char const *pBuffer, unsigned int uLen);
 
     LOG_CFG_ST                  m_logCfg;//日志项配置信息
     DTK_HANDLE                  m_hThread;//线程句柄
     DTK_BOOL                    m_bExit;//线程退出标识
-    DTK_MUTEX_T                 m_lockLog;
-    std::deque<std::string>     m_LogList;//日志队列
-    DTK_FILE_HANDLE             m_hFile;//要写入的文件句柄
+    DTK_MUTEX_T                 m_BufLock;
+    char*                       m_pLogBufPtr;//缓存指针
+    char*                       m_pWritePtr;//缓存写指针
+    DTK_UINT32                  m_uBufCountCanbeUsed;//缓存可写字节数
+    std::deque<LOG_DETAIL_ST>   m_LogList;//日志队列
+    DTK_HANDLE                  m_hFile;//要写入的文件句柄
     DTK_UINT32                  m_uCurFileIndex;//当前正在写的文件索引
 };
 
@@ -91,15 +109,18 @@ std::map<std::string, CLogModule*>  g_mapLogModule;
 CLogModule::CLogModule()
 : m_hThread(DTK_INVALID_THREAD)
 , m_bExit(DTK_FALSE)
+, m_pLogBufPtr(NULL)
+, m_pWritePtr(NULL)
+, m_uBufCountCanbeUsed(0)
 , m_hFile(DTK_INVALID_FILE)
 , m_uCurFileIndex(0)
 {
-    DTK_MutexCreate(&m_lockLog);
+    DTK_MutexCreate(&m_BufLock);
 }
 
 CLogModule::~CLogModule()
 {
-    DTK_MutexDestroy(&m_lockLog);
+    DTK_MutexDestroy(&m_BufLock);
 }
 
 /** @fn int Init(void)
@@ -108,6 +129,20 @@ CLogModule::~CLogModule()
 */
 int CLogModule::Init(void)
 {
+	if (NULL != m_pLogBufPtr)
+	{
+        return DTK_ERROR;
+	}
+
+    m_pLogBufPtr = new(std::nothrow) char[MAX_LOGBUF_BYTES];
+    if (NULL == m_pLogBufPtr)
+    {
+        return DTK_ERROR;
+    }
+    DTK_ZeroMemory(m_pLogBufPtr, MAX_LOGBUF_BYTES);
+
+    m_pWritePtr = m_pLogBufPtr;
+    m_uBufCountCanbeUsed = MAX_LOGBUF_BYTES;
     m_LogList.clear();
     m_bExit = DTK_FALSE;
 
@@ -123,6 +158,8 @@ int CLogModule::Init(void)
     m_hThread = DTK_Thread_Create(WriteLogProc, this, 0);
 	if (DTK_INVALID_THREAD == m_hThread)
 	{
+        SafeDelete(m_pLogBufPtr);
+        m_pWritePtr = NULL;
 		return DTK_ERROR;
 	}
 
@@ -149,6 +186,8 @@ int CLogModule::Fini(void)
     }
 
     m_LogList.clear();
+    SafeDelete(m_pLogBufPtr);
+    m_pWritePtr = NULL;
 
 	return DTK_OK;
 }
@@ -163,73 +202,47 @@ LOG_LEVEL_E CLogModule::GetLogLevel() const
     return m_logCfg.eLevel;
 }
 
-/** @fn int FormatLogContent(char *pBuffer, unsigned int uSize, LOG_LEVEL_E eLevel, const char* pFileName, const char* pFuncName, int iLine)
-*   @brief 格式化日志信息
-*   @param [in] pBuffer     缓冲区
-*   @param [in] uSize       缓冲区大小
-*   @param [in] eLevel      日志级别
-*   @param [in] pFileName   文件名
-*   @param [in] pFuncName   函数名
-*   @param [in] iLine       行号
-*   @return 格式化后的长度，-1表示出错
-*/
-int CLogModule::FormatLogContent(char *pBuffer, unsigned int uSize, LOG_LEVEL_E eLevel, const char* pModule, const char* pFileName, const char* pFuncName, int iLine)
-{
-    //日志级别名称字符串
-    static const char *LEVEL_TEXT[] = {"DISABLE", "TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
-
-#if defined OS_WINDOWS
-    struct _timeb mi_now;
-    _ftime(&mi_now);
-#elif defined OS_POSIX
-    struct timeb mi_now;
-    ftime(&mi_now);
-#endif
-    struct tm* tmNow = localtime(&mi_now.time);
-    if (NULL == tmNow)
-    {
-        return DTK_ERROR;
-    }
-
-    std::string strFileName(pFileName);
-    DTK_UINT32 uIndex = strFileName.find_last_of("\\");
-    if (uIndex != std::string::npos)
-    {
-        strFileName = strFileName.substr(uIndex + 1);
-    }
-    else if ((uIndex = strFileName.find_last_of("/")) != std::string::npos)
-    {
-        strFileName = strFileName.substr(uIndex+ 1);
-    }
-
-    return DTK_Snprintf(pBuffer, uSize, "%04u-%02u-%02u %02u:%02u:%02u.%03u [0x%08x] %s\t<%s>\t<%s>\t<%s>\t<%d> "
-        ,tmNow->tm_year+1900, tmNow->tm_mon+1, tmNow->tm_mday,tmNow->tm_hour, tmNow->tm_min, tmNow->tm_sec, mi_now.millitm
-        ,DTK_Thread_GetSelfId(), LEVEL_TEXT[eLevel], pModule, strFileName.c_str(), pFuncName, iLine);
-}
-
-
 /** @fn int CLogModule::PushData(char const *pContent, unsigned int iLen)
 *   @brief 向日志缓冲区推入数据
 *   @param [in] pContent    数据指针
 *   @param [in] iLen        数据长度
 *   @return LOG_NOERROR/错误值
 */
-int CLogModule::PushData(LOG_LEVEL_E eLevel, const char* pModule, const char* pFilePath, const char* pFuncName, int iLine, char const *pContent)
+int CLogModule::PushData(char const *pContent, unsigned int iLen)
 {
-    DTK_MutexLock(&m_lockLog);
-    //在未使用异步写的情况下，避免内存泄漏，丢弃一部分日志数据
-    if (m_LogList.size() > MAX_CACHE_SIZE)
-    {
-        return DTK_ERROR;
-    }
-    char szBuffer[512] = {0};
-    if (FormatLogContent(szBuffer, sizeof(szBuffer) - 1, eLevel, pModule, pFilePath, pFuncName, iLine) < 0)
-    {
-        return DTK_ERROR;
-    }
-    std::string strDetail = std::string(szBuffer) + pContent;
-    m_LogList.push_back(strDetail);
-    DTK_MutexUnlock(&m_lockLog);
+    DTK_MutexLock(&m_BufLock);
+
+	if (m_uBufCountCanbeUsed < iLen)
+	{
+        DTK_MutexUnlock(&m_BufLock);
+		return DTK_ERROR;
+	}
+
+	if (m_pWritePtr != NULL && m_pLogBufPtr != NULL)
+	{
+		//写指针剩下的字节数不足以写，则返回到起始位置写
+		if ((unsigned int)(m_pLogBufPtr + MAX_LOGBUF_BYTES - m_pWritePtr) < iLen)
+		{
+			m_pWritePtr = m_pLogBufPtr;
+		}
+
+		memcpy(m_pWritePtr, pContent, iLen);
+		static LOG_DETAIL_ST stLogInfo;
+		stLogInfo.dataptr = m_pWritePtr;
+		stLogInfo.length = iLen;
+
+		try
+		{
+			m_LogList.push_back(stLogInfo);
+		}
+		catch (...)
+		{
+			WriteLog(ERROR_LEVEL, "Default", __FILE__, __FUNCTION__, __LINE__, "push_back allo exception");
+		}		
+		m_pWritePtr += iLen;
+		m_uBufCountCanbeUsed -= iLen;
+	}
+    DTK_MutexUnlock(&m_BufLock);
 
 	return DTK_OK;
 }
@@ -244,45 +257,43 @@ int CLogModule::InputDataToFile(char const *pBuffer, unsigned int uLen)
 {
 	//判断文件是否即将超出长度限制
     DTK_INT64 iFilesize = 0;
-    if (DTK_FileSeek(m_hFile, (DTK_INT64)0, DTK_SEEK_END, &iFilesize) != DTK_ERROR)
+    DTK_FileSeek(m_hFile, (DTK_INT64)0, DTK_SEEK_END, &iFilesize);
+    if (iFilesize + uLen > (m_logCfg.iMaxFileSize * 1024 * 1024))
     {
-        if (iFilesize + uLen > (m_logCfg.iMaxFileSize * 1024 * 1024))
+        DTK_CloseFile(m_hFile);
+        m_hFile = DTK_INVALID_FILE;
+
+        char szOldFileName[DTK_MAX_PATH] = {0};
+        char szNewFileName[DTK_MAX_PATH] = {0};
+
+        //自动回滚日志文件
+        for (DTK_UINT32 i = m_uCurFileIndex + 1; i > 0; i--)
         {
-            DTK_CloseFile(m_hFile);
-            m_hFile = DTK_INVALID_FILE;
-
-            char szOldFileName[DTK_MAX_PATH] = {0};
-            char szNewFileName[DTK_MAX_PATH] = {0};
-
-            //自动回滚日志文件
-            for (DTK_UINT32 i = m_uCurFileIndex + 1; i > 0; i--)
+            DTK_ZeroMemory(szOldFileName, DTK_MAX_PATH);
+            DTK_ZeroMemory(szNewFileName, DTK_MAX_PATH);
+            if (i == 1)
             {
-                DTK_ZeroMemory(szOldFileName, DTK_MAX_PATH);
-                DTK_ZeroMemory(szNewFileName, DTK_MAX_PATH);
-                if (i == 1)
-                {
-                    DTK_Snprintf(szOldFileName, sizeof(szOldFileName), "%s", m_logCfg.strFilePath.c_str());
-                }
-                else
-                {
-                    DTK_Snprintf(szOldFileName, sizeof(szOldFileName), "%s.%d", m_logCfg.strFilePath.c_str(), i-1);
-                }
+                DTK_Snprintf(szOldFileName, sizeof(szOldFileName), "%s", m_logCfg.strFilePath.c_str());
+            }
+            else
+            {
+                DTK_Snprintf(szOldFileName, sizeof(szOldFileName), "%s.%d", m_logCfg.strFilePath.c_str(), i-1);
+            }
+            
+            DTK_Snprintf(szNewFileName, sizeof(szNewFileName), "%s.%d", m_logCfg.strFilePath.c_str(), i);
 
-                DTK_Snprintf(szNewFileName, sizeof(szNewFileName), "%s.%d", m_logCfg.strFilePath.c_str(), i);
-
-                if (i == m_logCfg.iMaxBackupIndex)
-                {
-                    DTK_DeleteFile(szOldFileName);
-                    continue;
-                }
-
-                rename(szOldFileName, szNewFileName);
+            if (i == m_logCfg.iMaxBackupIndex)
+            {
+                DTK_DeleteFile(szOldFileName);
+                continue;
             }
 
-            m_uCurFileIndex = (m_uCurFileIndex + 1) % m_logCfg.iMaxBackupIndex;
+            rename(szOldFileName, szNewFileName);
         }
+
+        m_uCurFileIndex = (m_uCurFileIndex + 1) % m_logCfg.iMaxBackupIndex;
     }
-    
+
 	if (m_hFile == DTK_INVALID_FILE)
 	{
         char szFileName[DTK_MAX_PATH] = {0};
@@ -290,7 +301,7 @@ int CLogModule::InputDataToFile(char const *pBuffer, unsigned int uLen)
 		m_hFile = DTK_OpenFile(szFileName, DTK_CREATE | DTK_WRITE | DTK_APPEND, DTK_ATTR_WRITE);
 		if (m_hFile == DTK_INVALID_FILE)
 		{
-			DTK_OutputDebug("CLogModule OpenFile[%s] failed, err = %d", szFileName, DTK_GetLastError());
+			DTK_OutputDebug("CLogModule OpenFile[%s] failed", szFileName);
 			return DTK_ERROR;
 		}
 	}
@@ -314,6 +325,8 @@ void* CALLBACK CLogModule::WriteLogProc(void *pParam)
         return NULL;
     }
 
+    LOG_DETAIL_ST stCurInfo;
+
     while (true)
     {
         if (pThis->m_bExit)
@@ -325,36 +338,82 @@ void* CALLBACK CLogModule::WriteLogProc(void *pParam)
             }
         }
 
-        DTK_MutexLock(&pThis->m_lockLog);
+        DTK_MutexLock(&pThis->m_BufLock);
         if (pThis->m_LogList.empty())
         {
-            DTK_MutexUnlock(&pThis->m_lockLog);
+            DTK_MutexUnlock(&pThis->m_BufLock);
             DTK_Sleep(5);
             continue;
         }
         else
         {
-            std::string strLogDetial = pThis->m_LogList.front();
+            memcpy(&stCurInfo, &(pThis->m_LogList.front()), sizeof(stCurInfo));
             pThis->m_LogList.pop_front();
-            DTK_MutexUnlock(&pThis->m_lockLog);
+            //更新可用字节数
+            pThis->m_uBufCountCanbeUsed += stCurInfo.length;
+            DTK_MutexUnlock(&pThis->m_BufLock);
 
             if (pThis->m_logCfg.eMode == LOCAL_CONSOLE)
             {
-                fprintf(stdout, "%s", strLogDetial.c_str());
+                fprintf(stdout, "%s", stCurInfo.dataptr);
             }
             if (pThis->m_logCfg.eMode == LOCAL_DEBUG)
             {
-                DTK_OutputDebugString(strLogDetial.c_str());
+                DTK_OutputDebugString(stCurInfo.dataptr);
             }
             if (pThis->m_logCfg.eMode == LOCAL_FILE)
             {
                 //写文件时长度减1，是要减去最后的结束符
-                pThis->InputDataToFile(strLogDetial.c_str(), strLogDetial.length() - 1);
+                pThis->InputDataToFile(stCurInfo.dataptr, stCurInfo.length - 1);
             }
         }
     }
 
     return NULL;
+}
+
+/** @fn int FormatLogContent(char *pBuffer, unsigned int uSize, LOG_LEVEL_E eLevel, const char* pFileName, const char* pFuncName, int iLine)
+*   @brief 格式化日志信息
+*   @param [in] pBuffer     缓冲区
+*   @param [in] uSize       缓冲区大小
+*   @param [in] eLevel      日志级别
+*   @param [in] pFileName   文件名
+*   @param [in] pFuncName   函数名
+*   @param [in] iLine       行号
+*   @return 格式化后的长度，-1表示出错
+*/
+int FormatLogContent(char *pBuffer, unsigned int uSize, LOG_LEVEL_E eLevel, const char* pModule, const char* pFileName, const char* pFuncName, int iLine)
+{
+    //日志级别名称字符串
+    static const char *LEVEL_TEXT[] = {"DISABLE", "TRACE", "DEBUG", "INFO", "WARN", "ERROR"};
+
+#if defined OS_WINDOWS
+	struct _timeb mi_now;
+	_ftime(&mi_now);
+#elif defined OS_POSIX
+	struct timeb mi_now;
+	ftime(&mi_now);
+#endif
+	struct tm* tmNow = localtime(&mi_now.time);
+    if (NULL == tmNow)
+    {
+        return DTK_ERROR;
+    }
+
+    std::string strFileName(pFileName);
+    DTK_UINT32 uIndex = strFileName.find_last_of("\\");
+    if (uIndex != std::string::npos)
+    {
+        strFileName = strFileName.substr(uIndex + 1);
+    }
+    else if ((uIndex = strFileName.find_last_of("/")) != std::string::npos)
+    {
+        strFileName = strFileName.substr(uIndex+ 1);
+    }
+	
+    return DTK_Snprintf(pBuffer, uSize, "%04u-%02u-%02u %02u:%02u:%02u.%03u [0x%08x] %s\t<%s>\t<%s>\t<%s>\t<%d> "
+        ,tmNow->tm_year+1900, tmNow->tm_mon+1, tmNow->tm_mday,tmNow->tm_hour, tmNow->tm_min, tmNow->tm_sec, mi_now.millitm
+        ,DTK_Thread_GetSelfId(), LEVEL_TEXT[eLevel], pModule, strFileName.c_str(), pFuncName, iLine);
 }
 
 DTK_DECLARE int CALLBACK WriteLog(LOG_LEVEL_E eLevel, const char* pModule, const char* pFilePath, const char* pFuncName, int iLine, const char *pContent, ...)
@@ -364,23 +423,25 @@ DTK_DECLARE int CALLBACK WriteLog(LOG_LEVEL_E eLevel, const char* pModule, const
 		return DTK_ERROR;
 	}
 
-    //可变参数只能在同一过程格式化，不能再做传递
+	char szBuffer[MAX_PRINT_BYTES] = {0};
+	int iLength = FormatLogContent(szBuffer, sizeof(szBuffer) - 1, eLevel, pModule, pFilePath, pFuncName, iLine);
+	if (iLength == -1)
+	{
+		return DTK_ERROR;
+	}
+
 	va_list args;
 	va_start(args, pContent);
-    char szBuffer[MAX_PRINT_BYTES] = {0};
-	int valen = DTK_Vsnprintf(szBuffer, sizeof(szBuffer) - 3, pContent, args);
+	int valen = DTK_Vsnprintf(szBuffer + iLength, (sizeof(szBuffer) - 1) - (unsigned int)iLength, pContent, args);
 	va_end(args);
 	if (valen == -1)
 	{
 		return DTK_ERROR;
 	}
-#ifdef OS_WINDOWS
-	szBuffer[valen++] = '\r';
-#elif defined OS_POSIX
-	szBuffer[valen++] = '\n';
-#endif
-    szBuffer[valen++] = '\n';
-	szBuffer[valen++] = 0;
+	iLength += valen;
+	szBuffer[iLength++] = '\r';
+	szBuffer[iLength++] = '\n';
+	szBuffer[iLength++] = 0;
 
     DTK_Guard guard(&g_lockLogModule);
     if (g_mapLogModule.find(pModule) != g_mapLogModule.end())
@@ -389,7 +450,7 @@ DTK_DECLARE int CALLBACK WriteLog(LOG_LEVEL_E eLevel, const char* pModule, const
         {
             return DTK_ERROR;
         }
-        return g_mapLogModule[pModule]->PushData(eLevel, pModule, pFilePath, pFuncName, iLine, szBuffer);
+        return g_mapLogModule[pModule]->PushData(szBuffer, (unsigned int)iLength);
     }
     else if (g_mapLogModule.find("Default") != g_mapLogModule.end())
     {
@@ -397,7 +458,7 @@ DTK_DECLARE int CALLBACK WriteLog(LOG_LEVEL_E eLevel, const char* pModule, const
         {
             return DTK_ERROR;
         }
-        return g_mapLogModule["Default"]->PushData(eLevel, pModule, pFilePath, pFuncName, iLine, szBuffer);
+        return g_mapLogModule["Default"]->PushData(szBuffer, (unsigned int)iLength);
     }
 
 	return DTK_ERROR;
@@ -541,7 +602,8 @@ DTK_INT32 StopLogService()
         }
     }
 
-    g_mapLogModule.clear();
+    g_mapLogModule.swap(std::map<std::string, CLogModule*>());
     return DTK_OK;
 }
 
+#endif

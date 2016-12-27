@@ -11,6 +11,7 @@
     typedef DWORD DTK_FILETYPE_T;
     typedef DTK_INT64 DTK_INODE_T;
     typedef DTK_INT64 DTK_SIZE_T;
+    typedef DTK_HANDLE DTK_FILE_HANDLE;
     #define DTK_INVALID_FILE INVALID_HANDLE_VALUE
 #elif (defined OS_POSIX)
     typedef uid_t DTK_UID_T;
@@ -18,7 +19,8 @@
     typedef mode_t DTK_FILETYPE_T;
     typedef DTK_INT64 DTK_INODE_T;
     typedef DTK_INT64 DTK_SIZE_T;
-    #define DTK_INVALID_FILE (DTK_HANDLE)-1 
+    typedef DTK_INT32 DTK_FILE_HANDLE;
+    #define DTK_INVALID_FILE (DTK_FILE_HANDLE)-1 
 #endif
 
 #define DTK_MAX_PATH	260			    //windows MAX_PATH
@@ -52,6 +54,10 @@
 #define DTK_SYNC	        O_SYNC		//以同步的方式打开文件
 #define DTK_NOFOLLOW	    O_NOFOLLOW	//所指的文件为一符号连接, 则会令打开文件失败
 #define DTK_DIRECTORY	    O_DIRECTORY	//如果参数pathname 所指的文件并非为一目录, 则会令打开文件失败
+
+#define DTK_RWXU            S_IRWXU     //read、write、excute by user, linux only
+#define DTK_RWXG            S_IRWXG     //read、write、excute by user, linux only
+#define DTK_RWXO            S_IRWXO     //read、write、excute by user, linux only
 #endif
 
 //(file attribute flag)
@@ -71,10 +77,6 @@
 #define DTK_WREAD           0x0004      //Read by others
 #define DTK_WWRITE          0x0002      //Write by others
 #define DTK_WEXECUTE        0x0001      //Execute by others
-
-#define DTK_RWXU            0x00700     //read、write、excute by user, linux only
-#define DTK_RWXG            0x00070     //read、write、excute by user, linux only
-#define DTK_RWXO            0x00007     //read、write、excute by user, linux only
 
 //for windows
 #define DTK_USETID          0x8000      //Set user id
@@ -128,21 +130,21 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_MakeMutilDir(const char* pDir);
 */
 DTK_DECLARE DTK_INT32 CALLBACK DTK_RemoveDir(const char* pDir);
 
-/** @fn DTK_DECLARE DTK_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr)
+/** @fn DTK_DECLARE DTK_FILE_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr)
 *   @brief 打开文件
 *   @param [in] pFileName   文件路径
 *   @param [in] nFlag       打开标志
 *   @param [in] nFileAttr   访问方式
 *   @return 文件句柄
 */
-DTK_DECLARE DTK_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr);
+DTK_DECLARE DTK_FILE_HANDLE CALLBACK DTK_OpenFile(const char* pFileName, DTK_UINT32 nFlag, DTK_UINT32 nFileAttr);
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_HANDLE hFile)
+/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_FILE_HANDLE hFile)
 *   @brief 关闭文件
 *   @param [in] hFile       文件句柄
 *   @return 成功返回0，失败返回-1
 */
-DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_HANDLE hFile);
+DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_FILE_HANDLE hFile);
 
 /** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_DeleteFile(const char* pFileName)
 *   @brief 删除文件
@@ -151,7 +153,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_CloseFile(DTK_HANDLE hFile);
 */
 DTK_DECLARE DTK_INT32 CALLBACK DTK_DeleteFile(const char* pFileName);
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead)
+/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead)
 *   @brief 读文件数据
 *   @param [in] hFile                   文件句柄
 *   @param [in] pBuf                    数据缓存
@@ -159,9 +161,9 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_DeleteFile(const char* pFileName);
 *   @param [out] pNumberOfBytesRead     实际读取多少字节数据
 *   @return 成功返回0，失败返回-1
 */
-DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead);
+DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToRead, DTK_UINT32* pNumberOfBytesRead);
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite)
+/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite)
 *   @brief 写数据到文件
 *   @param [in] hFile                   文件句柄
 *   @param [in] pBuf                    数据缓存
@@ -169,9 +171,9 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_ReadFile(DTK_HANDLE hFile, void* pBuf, DTK_UI
 *   @param [out] pNumberOfBytesRead     实际写多少字节数据
 *   @return 成功返回0，失败返回-1
 */
-DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite);
+DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_FILE_HANDLE hFile, void* pBuf, DTK_UINT32 nNumberOfBytesToWrite, DTK_UINT32* pNumberOfBytesWrite);
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset)
+/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_FILE_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset)
 *   @brief 控制文件指针的位置
 *   @param [in] hFile       文件句柄
 *   @param [in] iOffset     偏移量
@@ -179,18 +181,18 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_WriteFile(DTK_HANDLE hFile, void* pBuf, DTK_U
 *   @param [out] iCurOffset 当前文件指针位置
 *   @return 成功返回0，失败返回-1
 */
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset);
+DTK_DECLARE DTK_INT32 CALLBACK DTK_FileSeek(DTK_FILE_HANDLE hFile, DTK_INT64 iOffset, DTK_UINT32 nWhence, DTK_INT64* iCurOffset);
 
 #if 0
-DTK_DECLARE DTK_BOOL CALLBACK DTK_FileIsEOF(DTK_HANDLE hFile);
+DTK_DECLARE DTK_BOOL CALLBACK DTK_FileIsEOF(DTK_FILE_HANDLE hFile);
 #endif
 
-/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_HANDLE hFile)
+/** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_FILE_HANDLE hFile)
 *   @brief 把缓存区的文件数据强制写到磁盘
 *   @param [in] hFile       文件句柄
 *   @return 成功返回0，失败返回-1
 */
-DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_HANDLE hFile);
+DTK_DECLARE DTK_INT32 CALLBACK DTK_FileFlush(DTK_FILE_HANDLE hFile);
 
 /** @fn DTK_DECLARE DTK_INT32 CALLBACK DTK_GetCurExePath(char* pBuf, DTK_INT32 iSize)
 *   @brief 获取当前工作路径
