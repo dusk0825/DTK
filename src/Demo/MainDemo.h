@@ -18,6 +18,9 @@
 #include "DTK_Select.h"
 #include "DTK_FileSystem.h"
 #include "DTK_LogModule.h"
+#include "DTK_Timer.h"
+#include "DTK_ThreadPool.h"
+#include "DTK_ThreadPoolFlex.h"
 
 
 void Test_Event();

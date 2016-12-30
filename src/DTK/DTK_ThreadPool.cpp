@@ -105,6 +105,8 @@ THREAD_INFO_T* DTK_GetIdle_Local(THREAD_POOL_T* pThreadPool)
         return NULL;
     }
 
+    THREAD_INFO_T* pTemThdPool = NULL;
+
     DTK_MutexLock(&pThreadPool->hLock);
     for (DTK_UINT32 i = 0; i < pThreadPool->nMaxCount; i++)
     {
@@ -113,12 +115,13 @@ THREAD_INFO_T* DTK_GetIdle_Local(THREAD_POOL_T* pThreadPool)
         {
             // 线程存在且空闲
             pThreadPool->struWorks[i].bIdle = DTK_FALSE;
-            return &pThreadPool->struWorks[i];
+            pTemThdPool = &pThreadPool->struWorks[i];
+            break;
         }
     }
     DTK_MutexUnlock(&pThreadPool->hLock);
 
-    return NULL;
+    return pTemThdPool;
 }
 
 /** @fn DTK_VOIDPTR CALLBACK GolbalThreadPoolCallBack(DTK_VOIDPTR pParam)
@@ -142,7 +145,7 @@ DTK_VOIDPTR CALLBACK GolbalThreadPoolCallBack(DTK_VOIDPTR pParam)
         // 前nInitCount个线程不会退出
         if (pThreadPool->nTimeOut == DTK_INFINITE || pThreadInfo->nWorkIndex < pThreadPool->nInitCount)
         {
-            if(DTK_SemWait(&pThreadInfo->hSem) == DTK_ERROR)
+            if (DTK_SemWait(&pThreadInfo->hSem) == DTK_ERROR)
             {
                 //信号量异常返回有可能是收到中断信号，并非真正的有数据时会返回-1
                 continue;
@@ -150,7 +153,7 @@ DTK_VOIDPTR CALLBACK GolbalThreadPoolCallBack(DTK_VOIDPTR pParam)
         }
         else
         {
-            if(DTK_SemTimedWait(&pThreadInfo->hSem, pThreadPool->nTimeOut) == DTK_ERROR)
+            if (DTK_SemTimedWait(&pThreadInfo->hSem, pThreadPool->nTimeOut) == DTK_ERROR)
             {
                 DTK_HANDLE hThreadId = pThreadInfo->hThreadId;        
                 DTK_MutexLock(&pThreadPool->hLock);
@@ -501,7 +504,7 @@ DTK_DECLARE DTK_INT32 CALLBACK DTK_ThreadPool_WorkEx(DTK_HANDLE hHandle, DTK_Thr
             else
             {
                 DTK_MutexUnlock(&pThreadPool->hLock);
-                DTK_Sleep(5);
+                DTK_Sleep(50);
                 continue;
             }
         }
