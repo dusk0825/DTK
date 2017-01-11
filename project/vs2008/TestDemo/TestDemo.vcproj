@@ -177,7 +177,31 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\src\Demo\AsycIoDemo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Demo\AtomicDemo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Demo\EventDemo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Demo\FileDemo.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Demo\MainDemo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Demo\SingletonDemo.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Demo\SocketDemo.cpp"
 				>
 			</File>
 		</Filter>
@@ -186,6 +210,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\..\src\Demo\MainDemo.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

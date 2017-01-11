@@ -14,6 +14,9 @@ extern DTK_INT32 DTK_FiniTimer_Inter();
 extern DTK_INT32 DTK_InitThreadPool_Inter();
 extern DTK_VOID DTK_FiniThreadPool_Inter();
 
+extern DTK_INT32 DTK_AIOInit_Inter();
+extern DTK_VOID DTK_AIOFini_Inter();
+
 static DTK_Mutex s_DTKmutex;
 static DTK_INT32 s_iInitCount = 0;
 static DTK_BOOL  s_bDTKInitNetwork = DTK_FALSE;
@@ -31,6 +34,7 @@ static DTK_INT32 DTK_InitResource_Inter()
         StartLogService();
         DTK_InitTimer_Inter();
         DTK_InitThreadPool_Inter();
+        DTK_AIOInit_Inter();
         if ( DTK_InitNetwork_Inter() )
         {
             break;
@@ -49,6 +53,7 @@ static DTK_VOID DTK_ClearResource_Inter()
 {
     if (s_bDTKInitNetwork)
     {
+        DTK_AIOFini_Inter();
         DTK_FiniNetwork_Inter();
         DTK_FiniThreadPool_Inter();
         DTK_FiniTimer_Inter();

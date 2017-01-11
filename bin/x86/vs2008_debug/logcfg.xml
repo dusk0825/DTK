@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Config>
+	<logcfg>
+		<Module>Default</Module><!--日志模块-->
+		<FilePath>./log/default.log</FilePath><!--日志文件路径-->
+		<Level>DEBUG</Level><!--日志最低级别-->
+		<MaxFileSize>10</MaxFileSize><!--日志文件最大值，单位MB-->
+		<MaxBackupIndex>10</MaxBackupIndex><!--最大文件个数-->
+		<OutMode>FILE</OutMode><!--日志输出方式，FILE、CONSOLE、DEBUG-->
+	</logcfg>
+	<logcfg>
+		<Module>DTK</Module><!--日志模块-->
+		<FilePath>./log/dtk.log</FilePath><!--日志文件路径-->
+		<Level>DEBUG</Level><!--日志最低级别-->
+		<MaxFileSize>1</MaxFileSize><!--日志文件最大值，单位MB-->
+		<MaxBackupIndex>12</MaxBackupIndex><!--最大文件个数-->
+		<OutMode>FILE</OutMode><!--日志输出方式，FILE、CONSOLE、DEBUG-->
+	</logcfg>
+</Config>

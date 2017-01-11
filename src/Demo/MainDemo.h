@@ -21,12 +21,16 @@
 #include "DTK_Timer.h"
 #include "DTK_ThreadPool.h"
 #include "DTK_ThreadPoolFlex.h"
+#include "DTK_Singleton.h"
+#include "DTK_AsyncIO.h"
 
 
 void Test_Event();
 void Test_Atomic();
 void Test_Sock();
 void Test_File();
+void Test_Singleton();
+void Test_AsyncIo();
 
 #endif // __MAINDEMO_H__ 
 

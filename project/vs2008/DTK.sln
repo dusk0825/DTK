@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DTK", "DTK\DTK.vcproj", "{04E1FBA6-3F77-4F4D-8D0B-9B2F2D6807AE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestDemo", "TestDemo\TestDemo.vcproj", "{A587AFCA-3E80-42E7-A051-AC43F4A3782C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{04E1FBA6-3F77-4F4D-8D0B-9B2F2D6807AE} = {04E1FBA6-3F77-4F4D-8D0B-9B2F2D6807AE}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

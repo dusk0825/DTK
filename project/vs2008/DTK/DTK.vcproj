@@ -21,7 +21,7 @@
 			OutputDirectory="..\..\..\bin\x86\vs2008_debug"
 			IntermediateDirectory="..\..\..\obj\x86\vs2008_debug"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../../../public/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DTK_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -92,7 +93,7 @@
 			OutputDirectory="..\..\..\bin\x86\vs2008_release"
 			IntermediateDirectory="..\..\..\obj\x86\vs2008_release"
 			ConfigurationType="2"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -114,6 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../../public/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DTK_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -171,11 +173,35 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\..\src\DTK\DTK_AsyncIO.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_AsyncIOEx.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Dtk.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\DTK\DTK_Error.cpp"
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\DTK\DTK_FileSystem.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_LogModule.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\DTK\DTK_String.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Utils.cpp"
 				>
 			</File>
 		</Filter>
@@ -185,11 +211,39 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\..\..\src\DTK\DTK_AsyncIO.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_AsyncIOEx.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\DTK\DTK_Config.h"
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\DTK\DTK_Dtk.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\DTK\DTK_Error.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_FileSystem.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_LogModule.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Singleton.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_SmartPtr.h"
 				>
 			</File>
 			<File
@@ -200,12 +254,144 @@
 				RelativePath="..\..\..\src\DTK\DTK_Types.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Utils.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="thread"
+			>
+			<File
+				RelativePath="..\..\..\src\DTK\Atomic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Atomic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Atomic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Event.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Event.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Guard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Mutex.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Mutex.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Semaphore.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Semaphore.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_ThreadPool.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_ThreadPool.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_ThreadPoolFlex.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_ThreadPoolFlex.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="socket"
+			>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Addr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Addr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Select.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Select.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Socket.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Socket.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="time"
+			>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Time.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Time.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Timer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Timer.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="include"
+			>
+			<File
+				RelativePath="..\..\..\public\include\xml\Markup.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\public\include\xml\Markup.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
