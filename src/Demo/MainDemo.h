@@ -23,6 +23,7 @@
 #include "DTK_ThreadPoolFlex.h"
 #include "DTK_Singleton.h"
 #include "DTK_AsyncIO.h"
+#include "DTK_RWLock.h"
 
 
 void Test_Event();

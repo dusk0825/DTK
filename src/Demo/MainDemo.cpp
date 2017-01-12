@@ -10,8 +10,6 @@ DTK_VOIDPTR CALLBACK ThreadPoolCallBack(DTK_VOIDPTR pParam)
     return NULL;
 }
 
-#include "DTK_SmartPtr.h"
-
 int main(void)
 {
     DTK_Init();
@@ -35,7 +33,8 @@ int main(void)
 //     DTK_ThreadPoolFlex_Destroy(hThreadPool);
 
     //Test_Singleton();
-    Test_AsyncIo();
+    //Test_AsyncIo();
+    
 
     DTK_Fini();
     return 0;
