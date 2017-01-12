@@ -1,6 +1,6 @@
 
 #include "DTK_Thread.h"
-#include "DTK_AsyncIOEX.h"
+#include "DTK_AsyncIOEx.h"
 #include "DTK_Utils.h"
 #include "DTK_Mutex.h"
 #include "DTK_Guard.h"

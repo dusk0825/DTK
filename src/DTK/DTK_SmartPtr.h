@@ -21,8 +21,13 @@
 class shared_object
 {
 public:
-    shared_object() : value_(0), no_delete_(false)
+    shared_object() : /*value_(0),*/ no_delete_(false)
     {
+#ifdef OS_WINDOWS
+        value_ = 0;
+#elif defined OS_POSIX
+        value_.counter = 0;
+#endif
     }
 
     virtual ~shared_object()
@@ -38,7 +43,7 @@ public:
     {
         DTK_AtomicDec(&value_);
 
-        if (value_ == 0 && !no_delete && !no_delete_)
+        if (/*value_ == 0*/ DTK_AtomicRead(&value_) == 0 && !no_delete && !no_delete_)
         {
             no_delete_ = true;
             delete this;

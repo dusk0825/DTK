@@ -12,6 +12,7 @@ typedef struct tagCltInfo
 DTK_Mutex g_cltInfoLock;
 std::map<DTK_SOCK_T, CLIENT_INFO_ST> g_cltInfoMap;
 
+#ifdef OS_WINDOWS
 DTK_VOID AsyncIoSendCB(DTK_ULONG nErrorCode, DTK_ULONG nNumberOfBytes, DTK_VOIDPTR pUsrData);
 
 DTK_VOID AsyncIoRecvCB(DTK_ULONG nErrorCode, DTK_ULONG nNumberOfBytes, DTK_VOIDPTR pUsrData)
@@ -65,6 +66,7 @@ DTK_VOID AsyncIoSendCB(DTK_ULONG nErrorCode, DTK_ULONG nNumberOfBytes, DTK_VOIDP
     DTK_AsyncIO_BindCallBackToIOHandle((DTK_HANDLE)stCltInfo.iCltSock, AsyncIoRecvCB);
     DTK_AsyncIO_Recv((DTK_HANDLE)stCltInfo.iCltSock, g_cltInfoMap[*pSockFd].szBuffer, sizeof(stCltInfo.szBuffer), &g_cltInfoMap[*pSockFd].iCltSock);
 }
+#endif
 
 void Test_AsyncIo()
 {
@@ -81,6 +83,7 @@ void Test_AsyncIo()
     DTK_Bind(iSockFd, &stSvrAddr);
     DTK_Listen(iSockFd, 15);
 
+#ifdef OS_WINDOWS
     DTK_HANDLE hIocp = DTK_AsyncIO_CreateQueue();
     if (NULL == hIocp)
     {
@@ -110,6 +113,6 @@ void Test_AsyncIo()
         DTK_AsyncIO_BindCallBackToIOHandle((DTK_HANDLE)stCltInfo.iCltSock, AsyncIoRecvCB);
         DTK_AsyncIO_Recv((DTK_HANDLE)stCltInfo.iCltSock, g_cltInfoMap[stCltInfo.iCltSock].szBuffer, sizeof(stCltInfo.szBuffer), &g_cltInfoMap[stCltInfo.iCltSock].iCltSock);
     }
-
+#endif
     
 }

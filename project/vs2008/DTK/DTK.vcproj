@@ -345,6 +345,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\DTK\DTK_Netdb.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\DTK\DTK_Netdb.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\DTK\DTK_Select.cpp"
 				>
 			</File>

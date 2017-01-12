@@ -242,8 +242,6 @@ DTK_VOID DestoryIocpResource_Inter(LPSDTK_IOCPINFO pIOCPInfo)
 
 DTK_DECLARE DTK_HANDLE CALLBACK DTK_AsyncIO_CreateQueue(DTK_INT32 iThreadNum)
 {
-	DTK_AIOInit_Inter();
-
     DTK_HANDLE hIOCP = NULL;
     LPSDTK_IOCPINFO pIOCPInfo = NULL;
 
